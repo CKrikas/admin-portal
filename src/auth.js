@@ -1,7 +1,7 @@
 import Keycloak from "keycloak-js";
 
-const keycloak = new Keycloak({
-  url: "http://localhost:8080",
+export const keycloak = new Keycloak({
+  url: "http://localhost:8080/auth",  
   realm: "stratologia",
   clientId: "admin-portal",
 });
