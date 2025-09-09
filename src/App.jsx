@@ -4,7 +4,15 @@ import { login, logout, hasRole, authedFetch, API_BASE } from "./auth";
 export default function App() {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
-  const isOfficer = hasRole("officer");
+  const [isOfficer, setIsOfficer] = useState(hasRole("officer"));
+
+  // Re-check after mount (post-init) and on focus (after token refresh / re-login)
+  useEffect(() => {
+    const check = () => setIsOfficer(hasRole("officer"));
+    check();
+    window.addEventListener("focus", check);
+    return () => window.removeEventListener("focus", check);
+  }, []);
 
   async function load() {
     if (!isOfficer) return;
