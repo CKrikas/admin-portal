@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { initAuth, login, logout, hasRole, authedFetch } from "./auth";
+import { login, logout, hasRole, authedFetch, API_BASE } from "./auth";
 
 export default function App() {
   const [apps, setApps] = useState([]);
@@ -9,7 +9,7 @@ export default function App() {
   async function load() {
     if (!isOfficer) return;
     setLoading(true);
-    const data = await authedFetch("http://localhost:8000/applications?status=pending");
+    const data = await authedFetch(`${API_BASE}/applications?status=pending`);
     setApps(data);
     setLoading(false);
   }
@@ -17,7 +17,7 @@ export default function App() {
   useEffect(() => { load(); }, [isOfficer]);
 
   async function approve(id) {
-    await authedFetch(`http://localhost:8000/applications/${id}/approve`, { method: "POST" });
+    await authedFetch(`${API_BASE}/applications/${id}/approve`, { method: "POST" });
     await load();
   }
 
@@ -46,30 +46,40 @@ export default function App() {
         </div>
       </div>
 
-      {loading ? <p>Loading…</p> : (
-        <table className="min-w-[600px] border">
+      {loading ? (
+        <p>Loading…</p>
+      ) : (
+        <table className="min-w-[700px] border">
           <thead>
             <tr className="bg-gray-100">
               <th className="text-left p-2 border">ID</th>
               <th className="text-left p-2 border">Type</th>
               <th className="text-left p-2 border">Branch</th>
               <th className="text-left p-2 border">Status</th>
+              <th className="text-left p-2 border">Citizen ID</th>
               <th className="text-left p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {apps.map(a => (
               <tr key={a.id}>
-                {/* cols… */}
+                <td className="p-2 border">{a.id}</td>
+                <td className="p-2 border">{a.type}</td>
+                <td className="p-2 border">{a.desired_branch}</td>
+                <td className="p-2 border">{a.status}</td>
+                <td className="p-2 border">{a.citizen_id}</td>
                 <td className="p-2 border">
-                  <button onClick={()=>approve(a.id)} className="px-3 py-1 bg-green-600 text-white rounded">
+                  <button
+                    onClick={()=>approve(a.id)}
+                    className="px-3 py-1 bg-green-600 text-white rounded"
+                  >
                     Approve
                   </button>
                 </td>
               </tr>
             ))}
             {apps.length === 0 && (
-              <tr><td className="p-2 border" colSpan={5}>No pending applications</td></tr>
+              <tr><td className="p-2 border" colSpan={6}>No pending applications</td></tr>
             )}
           </tbody>
         </table>
