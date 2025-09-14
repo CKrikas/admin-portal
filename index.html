@@ -5,6 +5,26 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + React</title>
+
+    <script>
+      // !!! DEMO ONLY — NOT SECURE !!!
+      // Makes keycloak-js happy on plain HTTP by polyfilling Web Crypto bits.
+      if (!window.isSecureContext) {
+        if (!window.crypto) window.crypto = {};
+        if (!crypto.getRandomValues) {
+          crypto.getRandomValues = function (buf) {
+            for (let i = 0; i < buf.length; i++) buf[i] = Math.floor(Math.random() * 256);
+            return buf;
+          };
+        }
+        if (!crypto.randomUUID) {
+          crypto.randomUUID = function () {
+            const s4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).slice(1);
+            return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+          };
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
