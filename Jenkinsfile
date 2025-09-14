@@ -7,8 +7,16 @@ pipeline {
     stage('Checkout') { steps { checkout scm } }
     stage('Docker login') {
       steps {
-        withCredentials([string(credentialsId: 'ghcr_pat', variable: 'TOKEN')]) {
-          sh 'echo $TOKEN | docker login ghcr.io -u ckrikas --password-stdin'
+        withEnv(["DOCKER_CONFIG=${env.WORKSPACE}/.docker"]) {
+          withCredentials([string(credentialsId: 'ghcr_pat', variable: 'TOKEN')]) {
+            sh '''
+              set -eux
+              mkdir -p "$DOCKER_CONFIG"
+              docker logout ghcr.io || true
+              echo "$TOKEN" | docker login ghcr.io -u ckrikas --password-stdin
+              jq . "$DOCKER_CONFIG/config.json" || cat "$DOCKER_CONFIG/config.json" || true
+            '''
+          }
         }
       }
     }
@@ -20,10 +28,14 @@ pipeline {
     }
     stage('Push') {
       steps {
-        sh '''
-          docker push ${IMAGE}:${TAG}
-          docker push ${IMAGE}:latest
-        '''
+        withEnv(["DOCKER_CONFIG=${env.WORKSPACE}/.docker"]) {
+          sh '''
+            set -eux
+            docker push ${IMAGE}:${TAG}
+            # "best effort" for latest; don’t fail the build if GHCR rejects it
+            docker push ${IMAGE}:latest || echo "WARN: latest push failed; continuing"
+          '''
+        }
       }
     }
     stage('Trigger deploy') {
